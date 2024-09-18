@@ -1,12 +1,17 @@
 addict==2.4.0
 attrs==24.2.0
 certifi==2024.8.30
+cffi==1.17.1
+charset-normalizer==3.3.2
+cryptography==43.0.1
 h11==0.14.0
 idna==3.10
 numpy==2.1.1
 outcome==1.3.0.post0
 pandas==2.2.2
 pdfminer==20191125
+pdfminer.six==20240706
+pycparser==2.22
 pycryptodome==3.20.0
 PySocks==1.7.1
 python-dateutil==2.9.0.post0
@@ -15,6 +20,7 @@ selenium==4.24.0
 six==1.16.0
 sniffio==1.3.1
 sortedcontainers==2.4.0
+tqdm==4.66.5
 trio==0.26.2
 trio-websocket==0.11.1
 typing_extensions==4.12.2

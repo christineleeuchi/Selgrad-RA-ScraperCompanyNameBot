@@ -12,4 +12,6 @@ if __name__ == '__main__':
     #     driver.get("https://google.com/search?q=" + company_name)
         
         # time.sleep(5)
-    report_reader = ReportReader()
+    report_reader = ReportReader("Company.pdf")
+    report_reader.read()
+    print(report_reader.summary)
