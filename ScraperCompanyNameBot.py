@@ -20,7 +20,7 @@ if __name__ == "__main__":
     driver.get(
         "https://workspace.refinitiv.com/web/layout?layoutTemplate=marketMonitoring"
     )
-    time.sleep(10)
+    time.sleep(25)
 
     successful_download = False
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
                 print(dropdown_button)
                 dropdown_button.click()
                 print("Clicked the dropdown successfully!")
-                time.sleep(5)
+                time.sleep(12)
                 download_detail_guidance_report_xpath = "/html/body/gs-root/div[1]/gs-top-panel/div/coral-header/div[4]/gs-export-options/div/gs-dropdown-button[2]/div/emerald-popup-menu/coral-item[2]"
                 download_button = driver.find_element(
                     By.XPATH, download_detail_guidance_report_xpath
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         for company_url in potential_urls:
             driver.get(company_url)
             print("Going to page:", company_url)
-            time.sleep(12)
+            time.sleep(15)
             try:
                 find_all_iframes(driver)
             except:
