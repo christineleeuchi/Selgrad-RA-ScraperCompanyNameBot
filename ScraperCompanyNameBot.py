@@ -55,6 +55,8 @@ if __name__ == "__main__":
         potential_urls = [
             f"https://workspace.refinitiv.com/web/Apps/Corp/?s={company_tic}&st=RIC#/Apps/GuidanceSummary",
             f"https://workspace.refinitiv.com/web/Apps/Corp/?s={company_tic}.O&st=RIC#/Apps/GuidanceSummary",
+            f"https://workspace.refinitiv.com/web/Apps/Corp/?s={company_tic}.PK&st=RIC#/Apps/GuidanceSummary",
+            f"https://workspace.refinitiv.com/web/Apps/Corp/?s={company_tic}.PQ&st=RIC#/Apps/GuidanceSummary",
         ]
         successful_download = False
         for company_url in potential_urls:
