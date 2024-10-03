@@ -1,7 +1,8 @@
-from selenium import webdriver
-import time
-from selenium.webdriver.common.by import By
 import csv
+import time
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 
 if __name__ == "__main__":
     file = open("listofcompanies.csv", "r")
@@ -35,7 +36,7 @@ if __name__ == "__main__":
                 print(dropdown_button)
                 dropdown_button.click()
                 print("Clicked the dropdown successfully!")
-                time.sleep(12)
+                time.sleep(10)
                 download_detail_guidance_report_xpath = "/html/body/gs-root/div[1]/gs-top-panel/div/coral-header/div[4]/gs-export-options/div/gs-dropdown-button[2]/div/emerald-popup-menu/coral-item[2]"
                 download_button = driver.find_element(
                     By.XPATH, download_detail_guidance_report_xpath
@@ -43,10 +44,12 @@ if __name__ == "__main__":
                 download_button.click()
                 print("Downloaded report successfully!")
                 successful_download = True
-                time.sleep(6)
+                time.sleep(10)
             except:
                 find_all_iframes(drive)
                 drive.switch_to.parent_frame()
+
+    unable_to_download = []
 
     next(csv_file)
     for line in csv_file:
@@ -68,3 +71,8 @@ if __name__ == "__main__":
             except:
                 if successful_download:
                     break
+        if not successful_download:
+            unable_to_download.append(company_tic)
+    f = open("unable_to_download.txt", "w")
+    for tic in unable_to_download:
+        f.write(tic + "\n")
