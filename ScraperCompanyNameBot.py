@@ -21,7 +21,7 @@ if __name__ == "__main__":
     driver.get(
         "https://workspace.refinitiv.com/web/layout?layoutTemplate=marketMonitoring"
     )
-    time.sleep(25)
+    time.sleep(20)
 
     successful_download = False
 
@@ -31,20 +31,45 @@ if __name__ == "__main__":
         for index, iframe in enumerate(iframes):
             drive.switch_to.frame(index)
             try:
-                dropdown_button_xpath = "/html/body/gs-root/div[1]/gs-top-panel/div/coral-header/div[4]/gs-export-options/div/gs-dropdown-button[2]/div/coral-button[2]"
-                dropdown_button = driver.find_element(By.XPATH, dropdown_button_xpath)
-                print(dropdown_button)
-                dropdown_button.click()
-                print("Clicked the dropdown successfully!")
-                time.sleep(10)
-                download_detail_guidance_report_xpath = "/html/body/gs-root/div[1]/gs-top-panel/div/coral-header/div[4]/gs-export-options/div/gs-dropdown-button[2]/div/emerald-popup-menu/coral-item[2]"
-                download_button = driver.find_element(
-                    By.XPATH, download_detail_guidance_report_xpath
-                )
-                download_button.click()
-                print("Downloaded report successfully!")
-                successful_download = True
-                time.sleep(10)
+                financial_years = ["FY-1", "FY-2", "FY-3", "FY-4", "FY0", "FY1"]
+                year_select_xpath = "/html/body/gs-root/div[1]/gs-top-panel/div/coral-header/div[1]/coral-select"
+                year_select_dropdown = driver.find_element(By.XPATH, year_select_xpath)
+                print(year_select_dropdown)
+                print(year_select_dropdown.get_attribute("value"))
+                for financial_year in financial_years:
+                    try:
+                        print("Executing script")
+                        js = f"arguments[0].value = '{financial_year}'"
+                        driver.execute_script(js, year_select_dropdown)
+                        time.sleep(5)
+                        print("Changed financial year!")
+                        print("Button should show: ", financial_year)
+                        year_select_dropdown = driver.find_element(
+                            By.XPATH, year_select_xpath
+                        )
+                        print(
+                            "Button actually shows: ",
+                            year_select_dropdown.get_attribute("value"),
+                        )
+                        time.sleep(5)
+                        dropdown_button_xpath = "/html/body/gs-root/div[1]/gs-top-panel/div/coral-header/div[4]/gs-export-options/div/gs-dropdown-button[2]/div/coral-button[2]"
+                        dropdown_button = driver.find_element(
+                            By.XPATH, dropdown_button_xpath
+                        )
+                        print(dropdown_button)
+                        dropdown_button.click()
+                        print("Clicked the dropdown successfully!")
+                        time.sleep(8)
+                        download_detail_guidance_report_xpath = "/html/body/gs-root/div[1]/gs-top-panel/div/coral-header/div[4]/gs-export-options/div/gs-dropdown-button[2]/div/emerald-popup-menu/coral-item[2]"
+                        download_button = driver.find_element(
+                            By.XPATH, download_detail_guidance_report_xpath
+                        )
+                        download_button.click()
+                        print("Downloaded report successfully!")
+                        successful_download = True
+                        time.sleep(10)
+                    except:
+                        print(f"Failed to download year {financial_year}")
             except:
                 find_all_iframes(drive)
                 drive.switch_to.parent_frame()
