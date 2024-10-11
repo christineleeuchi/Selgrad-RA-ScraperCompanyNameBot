@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 if __name__ == "__main__":
-    file = open("listofcompanies.csv", "r")
+    file = open("listofcompanies_cut.csv", "r")
     csv_file = csv.reader(file)
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--user-data-dir=Refinitiv")
