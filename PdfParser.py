@@ -7,13 +7,19 @@ if __name__ == "__main__":
     print(batch_report_reader.files)
     batch_report_reader.get_data()
 
-    output_csv = open("output.csv", "w", newline='')
-    
-    fields_names = ["COMPANY_NAME", "GUID_FISCAL_PERIOD", "GUIDANCE_LINE_ITEM", "GUID_AMT"]
+    output_csv = open("output.csv", "w", newline="")
+
+    fields_names = [
+        "COMPANY_NAME",
+        "GUID_FISCAL_PERIOD",
+        "GUIDANCE_LINE_ITEM",
+        "GUID_AMT",
+        "GUID_ISSUE_DATE",
+    ]
     writer = csv.DictWriter(output_csv, fieldnames=fields_names)
     writer.writeheader()
     data = []
-    
+
     # Capital Expenditures
     for df in batch_report_reader.summaries:
         df = df[fields_names]
@@ -35,7 +41,4 @@ if __name__ == "__main__":
         values = df.to_dict("records")
         data.extend(values)
 
-    
-    
     writer.writerows(data)
-    
