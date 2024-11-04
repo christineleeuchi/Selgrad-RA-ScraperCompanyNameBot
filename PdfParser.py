@@ -20,25 +20,23 @@ if __name__ == "__main__":
     writer.writeheader()
     data = []
 
-    # Capital Expenditures
-    for df in batch_report_reader.summaries:
-        df = df[fields_names]
-        df = df[df["GUIDANCE_LINE_ITEM"].str.contains("Capital Expenditure")]
-        values = df.to_dict("records")
-        data.extend(values)
-
-    # Cash Flow
-    for df in batch_report_reader.summaries:
-        df = df[fields_names]
-        df = df[df["GUIDANCE_LINE_ITEM"].str.contains("Cash Flow")]
-        values = df.to_dict("records")
-        data.extend(values)
-
-    # Earnings
-    for df in batch_report_reader.summaries:
-        df = df[fields_names]
-        df = df[df["GUIDANCE_LINE_ITEM"].str.contains("Earnings")]
-        values = df.to_dict("records")
-        data.extend(values)
+    for i in range(len(batch_report_reader.reports)):
+        report = batch_report_reader.reports[i]
+        summary = batch_report_reader.summaries[i]
+        report = report.rename(columns={"LAST_ISSUE_DATETIME": "GUID_ISSUE_DATE"})
+        report = report.assign(COMPANY_NAME=summary["COMPANY_NAME"][0])
+        report = report[fields_names]
+        summary = summary[fields_names]
+        for line_item in ["Capital Expenditure", "Cash Flow", "Earnings"]:
+            report_guidance_df = report[
+                report["GUIDANCE_LINE_ITEM"].str.contains(line_item)
+            ]
+            values = report_guidance_df.to_dict("records")
+            data.extend(values)
+            summary_guidance_df = summary[
+                summary["GUIDANCE_LINE_ITEM"].str.contains(line_item)
+            ]
+            values = summary_guidance_df.to_dict("records")
+            data.extend(values)
 
     writer.writerows(data)
