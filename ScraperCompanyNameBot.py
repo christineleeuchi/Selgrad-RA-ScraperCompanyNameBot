@@ -89,8 +89,11 @@ if __name__ == "__main__":
                     break
         if not successful_download:
             unable_to_download.append(company_tic)
-            break
-    f = open("unable_to_download.txt", "w")
+    f = open("unable_to_download.txt", "r")
+    previously_failed_to_download = f.readlines()
+    f.close()
+    f = open("unable_to_download.txt", "a")
     for tic in unable_to_download:
-        f.write(tic + "\n")
-
+        if tic + "\n" not in previously_failed_to_download:
+            f.write(tic + "\n")
+    f.close()
