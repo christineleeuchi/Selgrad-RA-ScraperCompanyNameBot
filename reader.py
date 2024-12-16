@@ -11,8 +11,7 @@ from string import ascii_uppercase, digits
 import pandas
 from addict import Dict
 from pdfminer.high_level import extract_pages
-from pdfminer.layout import (LTChar, LTFigure, LTTextBoxHorizontal,
-                             LTTextLineHorizontal)
+from pdfminer.layout import LTChar, LTFigure, LTTextBoxHorizontal, LTTextLineHorizontal
 from pdfminer.pdfparser import PDFSyntaxError
 from tqdm import tqdm
 
@@ -1141,9 +1140,8 @@ class ReportBatchReader:
             r = ReportReader(f, nocaching=True)
             r.read()
             summary, report, error = r.summary, r.report, r.error
-            if summary is not None:
+            if summary is not None and report is not None:
                 self.summaries.append(summary)
-            if report is not None:
                 self.reports.append(report)
             if error:
                 self.errors.extend(error)

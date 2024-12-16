@@ -38,5 +38,6 @@ if __name__ == "__main__":
             ]
             values = summary_guidance_df.to_dict("records")
             data.extend(values)
+            data = [dict(s) for s in set(frozenset(d.items()) for d in data)]
 
     writer.writerows(data)
