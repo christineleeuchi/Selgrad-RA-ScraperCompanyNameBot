@@ -1,11 +1,10 @@
-from reader import ReportBatchReader
+from reader import ReportBatchReader, ReportReader
 import csv
 
 if __name__ == "__main__":
-    batch_report_reader = ReportBatchReader("reports", "output")
+    batch_report_reader = ReportBatchReader("meta", "output")
     batch_report_reader.get_files()
     print(batch_report_reader.files)
-    batch_report_reader.get_data()
 
     output_csv = open("output.csv", "w", newline="")
 
@@ -20,11 +19,17 @@ if __name__ == "__main__":
     writer.writeheader()
     data = []
 
-    for i in range(len(batch_report_reader.reports)):
-        report = batch_report_reader.reports[i]
-        summary = batch_report_reader.summaries[i]
+    for file in batch_report_reader.files:
+        r = ReportReader(file, nocaching=True)
+        r.read()
+        summary, report, error = r.summary, r.report, r.error
+        if summary is None or report is None:
+            continue
+        file_name = str(file)
+        company_name = file_name[file_name.index("/") + 1 :].split(" ")[0]
         report = report.rename(columns={"LAST_ISSUE_DATETIME": "GUID_ISSUE_DATE"})
-        report = report.assign(COMPANY_NAME=summary["COMPANY_NAME"][0])
+        report = report.assign(COMPANY_NAME=company_name)
+        summary = summary.assign(COMPANY_NAME=company_name)
         report = report[fields_names]
         summary = summary[fields_names]
         for line_item in ["Capital Expenditure", "Cash Flow", "Earnings"]:
