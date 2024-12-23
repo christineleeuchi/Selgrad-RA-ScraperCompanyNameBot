@@ -2,7 +2,7 @@ from reader import ReportBatchReader, ReportReader
 import csv
 
 if __name__ == "__main__":
-    batch_report_reader = ReportBatchReader("meta", "output")
+    batch_report_reader = ReportBatchReader("reports", "output")
     batch_report_reader.get_files()
     print(batch_report_reader.files)
 
