@@ -63,6 +63,51 @@ class ReportReader:
         ),
     )
 
+    def reset(self):
+        self.d15, self.d16 = None, None
+        self.skip = False
+        self.skip_step3 = False
+        self.skip_step4 = False
+        self.skip_step5 = False
+        self.skip_report = False
+        self.version = None
+        self.pages = Dict(cover=None, body=[], summary=[], report=[])
+        self.data = Dict(
+            company_name=None,
+            company_abbr=None,
+            fiscal_year=None,
+            report_date=None,
+            summary=[],
+            report=[],
+            error=set(),
+        )
+        self.cache = Dict(
+            summary=Dict(
+                columns={},
+                column_titles=[],
+                levels={},
+                topics={},
+                issuance_dates={},
+                combined_items={},
+                rows={},
+            ),
+            report=Dict(
+                period_reports={},
+                headers={},
+                issue_dates={},
+                contents={},
+                updated_contents={},
+                levels={},
+                topics={},
+                report_items={},
+                sections={},
+                updated_sections={},
+                guid_header={},
+                guid_sections={},
+                sectioned_report=[],
+            ),
+        )
+
     def __init__(self, fp: Path | str, nocaching=False, cp=None):
         self.fp = Path(fp)
         if not self.fp.exists():
@@ -1100,149 +1145,3 @@ class ReportReader:
                 if isinstance(it, LTChar)
             )
         )
-
-
-class ReportBatchReader:
-    def __init__(self, ip: Path | str, op: Path | str):
-        self.ip = Path(ip)
-        if not self.ip.exists():
-            raise FileNotFoundError(f"Input path {self.ip} does not exist")
-        self.op = Path(op)
-        self.summaries = []
-        self.reports = []
-        self.errors = []
-        self.no_data = True
-
-    def get_files(self):
-        """
-        Retrieves a list of PDF files from the specified directory and its subdirectories.
-
-        Returns:
-            self: The current instance of the class.
-        """
-        for f in self.ip.glob("**/*.pdf"):
-            f.rename(f.with_name(f"{f.stem.replace('Guidance Summary ', '')}.pdf"))
-        self.files = list(self.ip.glob("**/*.pdf"))
-        return self
-
-    def get_data(self):
-        """
-        Retrieves data from the files and stores it in the object.
-
-        Returns:
-            self: The current object with the retrieved data.
-        """
-
-        self.no_data = len(self.files) == 0
-        if self.no_data:
-            return self
-        for f in tqdm(self.files, desc="Processing files"):
-            r = ReportReader(f, nocaching=True)
-            r.read()
-            summary, report, error = r.summary, r.report, r.error
-            if summary is not None and report is not None:
-                self.summaries.append(summary)
-                self.reports.append(report)
-            if error:
-                self.errors.extend(error)
-        return self
-
-    def export(self):
-        """
-        Export the data to Excel files.
-
-        This method exports the data to multiple Excel files based on the starting character of the report name.
-        It creates separate sheets for the summary and report data in each Excel file.
-
-        Returns:
-            self: The current instance of the class.
-
-        """
-        if self.no_data:
-            return self
-        self.op.mkdir(parents=True, exist_ok=True)
-        with pandas.ExcelWriter(self.op / "log.xlsx") as writer:
-            self.error.to_excel(writer, index=False)
-        for c in tqdm(ascii_uppercase + digits, desc="Exporting files"):
-            summary = self.summary[self.summary["REPORT_NAME"].str.startswith(c)]
-            summary = summary[
-                [
-                    "REPORT_NAME",
-                    "COMPANY_NAME",
-                    "FISCAL_YEAR",
-                    "REPORT_DATE_GENERATED",
-                    "GUIDANCE_LEVEL",
-                    "GUIDANCE_TOPIC",
-                    "GUIDANCE_COMBINED_ITEM",
-                    "GUIDANCE_LINE_ITEM",
-                    "GUID_INFO",
-                    "GUID_FISCAL_PERIOD",
-                    "GUID_ISSUE_DATE",
-                    "GUID_AMT",
-                ]
-            ]
-            report = self.report[self.report["REPORT_NAME"].str.startswith(c)]
-            if summary.shape[0] == 0 and report.shape[0] == 0:
-                continue
-            summary = summary.drop_duplicates()
-            report = report.drop_duplicates()
-            with pandas.ExcelWriter(self.op / f"Guidance_DataSheet_{c}.xlsx") as writer:
-                summary.to_excel(writer, sheet_name="GUIDANCE_HEADER", index=False)
-                report.to_excel(
-                    writer, sheet_name="GUIDANCE_SOURCE_DETAIL", index=False
-                )
-
-        for c in tqdm(ascii_uppercase + digits, desc="Merging files"):
-            if self.op.joinpath(f"/Guidance_DataSheet_{c}.xlsx").exists():
-                df = pandas.read_excel(
-                    self.op / f"Guidance_DataSheet_{c}.xlsx",
-                    sheet_name="GUIDANCE_SOURCE_DETAIL",
-                )
-                df = df.reset_index()
-                df = df.rename(columns={"index": "SEQUENCE_ID"})
-                df = df[
-                    [
-                        "REPORT_NAME",
-                        "GUIDANCE_LEVEL",
-                        "GUIDANCE_TOPIC",
-                        "GUIDANCE_LINE_ITEM",
-                        "GUID_FISCAL_PERIOD",
-                        "GUID_AMT",
-                        "GUID_INFO",
-                        "SEQUENCE_ID",
-                        "LAST_ISSUE_DATETIME",
-                        "SOURCE",
-                        "SOURCE_TYPE",
-                        "SOURCE_PERSON_NAME",
-                        "SOURCE_PERSON_TITLE",
-                        "TEXT",
-                    ]
-                ]
-                df["SEQUENCE_ID"] = df["SEQUENCE_ID"] + 1
-                with pandas.ExcelWriter(
-                    self.op / f"Guidance_DataSheet_{c}.xlsx",
-                    mode="a",
-                    if_sheet_exists="replace",
-                ) as writer:
-                    df.to_excel(
-                        writer, sheet_name="GUIDANCE_SOURCE_DETAIL", index=False
-                    )
-
-    @property
-    def summary(self):
-        return pandas.concat(self.summaries, ignore_index=True)
-
-    @property
-    def report(self):
-        return pandas.concat(self.reports, ignore_index=True)
-
-    @property
-    def error(self):
-        return pandas.DataFrame(self.errors)
-
-
-if __name__ == "__main__":
-    input_path = "INSERT/INPUT/PATH"
-    output_path = "INSERT/OUTPUT/PATH"
-    Path(output_path).mkdir(parents=True, exist_ok=True)
-    ReportBatchReader(input_path, output_path).get_files().get_data().export()

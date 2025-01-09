@@ -1,10 +1,12 @@
-from reader import ReportBatchReader, ReportReader
-import csv
+from reader import ReportReader
+import csv, os
 
 if __name__ == "__main__":
-    batch_report_reader = ReportBatchReader("reports", "output")
-    batch_report_reader.get_files()
-    print(batch_report_reader.files)
+    current_dir = os.getcwd()
+    relative_dir = "reports"
+    full_path = os.path.join(current_dir, relative_dir)
+    files = os.listdir(full_path)
+    print(files)
 
     output_csv = open("output.csv", "w", newline="")
 
@@ -19,14 +21,20 @@ if __name__ == "__main__":
     writer.writeheader()
     data = []
 
-    for file in batch_report_reader.files:
-        r = ReportReader(file, nocaching=True)
-        r.read()
-        summary, report, error = r.summary, r.report, r.error
+    for file in files:
+        report_reader = ReportReader(relative_dir + "/" + file, nocaching=True)
+        report_reader.reset()
+        report_reader.read()
+        summary, report, error = (
+            report_reader.summary,
+            report_reader.report,
+            report_reader.error,
+        )
         if summary is None or report is None:
             continue
         file_name = str(file)
-        company_name = file_name[file_name.index("/") + 1 :].split(" ")[0]
+        print(file_name)
+        company_name = file_name.split(" ")[0]
         report = report.rename(columns={"LAST_ISSUE_DATETIME": "GUID_ISSUE_DATE"})
         report = report.assign(COMPANY_NAME=company_name)
         summary = summary.assign(COMPANY_NAME=company_name)
@@ -36,13 +44,13 @@ if __name__ == "__main__":
             report_guidance_df = report[
                 report["GUIDANCE_LINE_ITEM"].str.contains(line_item)
             ]
-            values = report_guidance_df.to_dict("records")
-            data.extend(values)
+            report_records = report_guidance_df.to_dict("records")
+            data.extend(report_records)
             summary_guidance_df = summary[
                 summary["GUIDANCE_LINE_ITEM"].str.contains(line_item)
             ]
-            values = summary_guidance_df.to_dict("records")
-            data.extend(values)
+            summary_records = summary_guidance_df.to_dict("records")
+            data.extend(summary_records)
             data = [dict(s) for s in set(frozenset(d.items()) for d in data)]
 
     writer.writerows(data)
